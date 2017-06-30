@@ -4,3 +4,9 @@ An interactive software to extract vessel centerline. The open end vessel will b
 Required packages: CMake VTK, VMTK
 
 Usage: Centerline.exe <surface.stl> <capped_surface.stl> <centerline.vtp>
+
+# Interaction keys:
+n - New inlet/outlet point
+space - locating the inlet/outlet point
+tab - change inlet/outlet point type
+enter - process
