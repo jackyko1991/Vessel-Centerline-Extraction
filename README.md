@@ -1,5 +1,12 @@
 # Vessel-Centerline-Extraction
-An interactive software to extract vessel centerline. The open end vessel will be enclosed in the process
+An interactive software to extract vessel centerline. The open end vessel will be enclosed in the process. Following parameters will be included in the output centerline vtp file:
+
+- Abscissas
+- Curvature
+- Fenet system (Binomal, Normal, Tangent)
+- Parallel Transport Normals
+- Radius
+- Torsion
 
 Required packages: CMake VTK, VMTK
 
