@@ -15,6 +15,9 @@ Centerline.exe <surface.stl> <capped_surface.stl> <centerline.vtp>
 
 # Interaction keys:
 n - New inlet/outlet point
+
 space - locating the inlet/outlet point
+
 tab - change inlet/outlet point type (red: inlet, green: outlet)
+
 enter - process
