@@ -8,31 +8,30 @@ An interactive software to extract vessel centerline. The open end vessel will b
 - Radius
 - Torsion
 
-# Usage
+## Usage
 `Centerline.exe <surface.stl> <capped_surface.stl> <centerline.vtp>`
 
-# Interaction keys:
-n - New inlet/outlet point
+## Interaction keys:
+`n` - New inlet/outlet point
 
-space - locating the inlet/outlet point
+`space` - locating the inlet/outlet point
 
-tab - change inlet/outlet point type (red: inlet, green: outlet)
+`tab` - change inlet/outlet point type (red: inlet, green: outlet)
 
-enter - process
+`enter` - process
 
-Output vessels are in VTL polydata format(.vtp). You may open with [Paraview](https://www.paraview.org/).
+Output data is in VTK polydata format(.vtp). You may open with [Paraview](https://www.paraview.org/).
 
-# Build from Source
-## Prerequisites
+## Build from Source
+### Prerequisites
 - [CMake](https://cmake.org/)
 - [VTK](https://github.com/Kitware/VTK.git)
 - [ITK](https://github.com/InsightSoftwareConsortium/ITK.git)
 - [VMTK](https://github.com/vmtk/vmtk)
 - [Qt](https://www.qt.io/)
 
-## Compilation Procedure
+### Compilation Procedure
 - Windows [\[Eng\]](./doc/build-en.md)
 - Ubuntu [\[Eng\]](./doc/build-en.md) [\[簡\]](https://github.com/jackyko1991/Vessel-Centerline-Extraction/issues/2)
 
-
-# Prebuild Binary
+## Prebuild Binary
