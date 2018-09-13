@@ -36,3 +36,4 @@ Output data is in VTK polydata format(.vtp). You may open with [Paraview](https:
 - Ubuntu [\[Eng\]](./doc/build-ubuntu-en.md) [\[簡\]](https://github.com/jackyko1991/Vessel-Centerline-Extraction/issues/2)
 
 ## Prebuild Binary
+Prebuild binary for Windows can be downloaded [here](https://github.com/jackyko1991/Vessel-Centerline-Extraction/releases/download/1.0.0beta/win.zip).
