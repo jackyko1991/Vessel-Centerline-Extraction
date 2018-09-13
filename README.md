@@ -31,7 +31,8 @@ Output data is in VTK polydata format(.vtp). You may open with [Paraview](https:
 - [Qt](https://www.qt.io/)
 
 ### Compilation Procedure
-- Windows [\[Eng\]](./doc/build-en.md)
-- Ubuntu [\[Eng\]](./doc/build-en.md) [\[簡\]](https://github.com/jackyko1991/Vessel-Centerline-Extraction/issues/2)
+- [Windows](./doc/build-en.md)
+- [Ubuntu Developer Build](./doc/build-en.md)
+- Ubuntu [\[Eng\]](./doc/build-ubuntu-en.md) [\[簡\]](https://github.com/jackyko1991/Vessel-Centerline-Extraction/issues/2)
 
 ## Prebuild Binary
