@@ -8,6 +8,8 @@ An interactive software to extract vessel centerline. The open end vessel will b
 - Radius
 - Torsion
 
+![alt text](./doc/img/result_large.jpg "Result")
+
 ## Usage
 `Centerline.exe <surface.stl> <capped_surface.stl> <centerline.vtp>`
 
