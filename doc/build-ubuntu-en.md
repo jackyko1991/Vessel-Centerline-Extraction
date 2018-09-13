@@ -1,4 +1,4 @@
-# Vessel-Centerline-Extraction (Ubuntu Source build (non-developer))
+# Ubuntu Source build (non-developer)
 This compilation is for non-developer usage. For developers, please follow the build instruction [here]().
 
 ## Prerequisites
@@ -67,7 +67,7 @@ cd Vessel-Centerline-Extraction
 vim CMakeList.txt
 ```
 
-1. Press `i` to edi tht eread lines as following:
+1. Press `i` to edit thee red lines as following:
 	![alt text](./img/cmakelist.png "CMakeList")
 
 2. Please note that `lxx` differs from computers. Replace it with your username.
