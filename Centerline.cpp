@@ -83,6 +83,8 @@ void Centerline::CalculateCenterline()
 	centerlinesFilter->SetSourceSeedIds(m_sourceIds);
 	centerlinesFilter->SetTargetSeedIds(m_targetIds);
 	centerlinesFilter->SetAppendEndPointsToCenterlines(m_appendEndPointsFlag);
+	centerlinesFilter->SetCenterlineResampling(true);
+	centerlinesFilter->SetResamplingStepLength(1);
 	centerlinesFilter->SetRadiusArrayName("Radius");
 	centerlinesFilter->SetEdgeArrayName("Edge");
 	centerlinesFilter->SetEdgePCoordArrayName("PCoord");

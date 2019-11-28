@@ -9,7 +9,7 @@ An interactive software to extract vessel centerline. The open end vessel will b
 - Torsion
 
 ## Usage
-`Centerline.exe <surface.stl> <capped_surface.stl> <centerline.vtp>`
+`CenterlineExtraction.exe <surface.stl> <capped_surface.stl> <centerline.vtp>`
 <p align="left"> 
 <img src="./doc/img/result_large.jpg" width="359px" height="266px" title="Result"/>
 </p>
