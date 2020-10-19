@@ -42,5 +42,5 @@ Output data is in VTK polydata format(.vtp). You may open with [Paraview](https:
 ## Prebuild Binary
 Prebuild binary for Windows can be downloaded [here](https://github.com/jackyko1991/Vessel-Centerline-Extraction/releases)
 
-## GUI version
+## GUI Version
 GUI verion can be found in [this repository](https://github.com/jackyko1991/Vessel-Clipper).
