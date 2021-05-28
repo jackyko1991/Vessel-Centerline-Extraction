@@ -3,7 +3,7 @@ An interactive software to extract vessel centerline. The open end vessel will b
 
 - Abscissas
 - Curvature
-- Fenet system (Binomal, Normal, Tangent)
+- Frenet system (Binomal, Normal, Tangent)
 - Parallel Transport Normals
 - Radius
 - Torsion
