@@ -24,7 +24,12 @@ The output centerline `.vtp` file contains:
 ## Usage
 
 ```bash
-CenterlineExtraction <surface.stl> <capped_surface.stl> <centerline.vtp>
+# macOS (run the binary inside the bundle directly — do not use `open`)
+./build/app/CenterlineExtraction.app/Contents/MacOS/CenterlineExtraction \
+  <surface.stl> <capped_surface.stl> <centerline.vtp>
+
+# Linux
+./build/app/CenterlineExtraction <surface.stl> <capped_surface.stl> <centerline.vtp>
 ```
 
 Output is in VTK PolyData format (`.vtp`). Open with [ParaView](https://www.paraview.org/).

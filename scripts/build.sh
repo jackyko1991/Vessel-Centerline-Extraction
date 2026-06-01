@@ -41,9 +41,10 @@ pixi run ctest --test-dir "$BUILD_DIR" --output-on-failure
 
 echo ""
 if [ -d "$BUILD_DIR/CenterlineExtraction.app" ]; then
-  echo "Build complete."
-  echo "  macOS app: $BUILD_DIR/CenterlineExtraction.app"
-  echo "  Run:       open $BUILD_DIR/CenterlineExtraction.app --args <surface.stl> <capped.stl> <out.vtp>"
+  BIN="$BUILD_DIR/CenterlineExtraction.app/Contents/MacOS/CenterlineExtraction"
 else
-  echo "Build complete. Binary: $BUILD_DIR/CenterlineExtraction"
+  BIN="$BUILD_DIR/CenterlineExtraction"
 fi
+echo ""
+echo "Build complete."
+echo "  Run: $BIN <surface.stl> <capped_surface.stl> <centerline.vtp>"
