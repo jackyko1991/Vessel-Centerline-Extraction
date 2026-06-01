@@ -224,7 +224,6 @@ int ExtractCenterline(string surfacePath, vtkPolyData* inputSurface, vtkPolyData
 			vtkSmartPointer<vtkTextActor> hintActor = vtkSmartPointer<vtkTextActor>::New();
 			hintActor->SetInput(
 				"[N] New seed   [Space] Place seed   [Tab] Toggle inlet/outlet   [Enter] Compute   [Q] Quit");
-			hintActor->GetTextProperty()->SetFontSize(14);
 			hintActor->GetTextProperty()->SetColor(0.9, 0.9, 0.9);
 			hintActor->GetTextProperty()->SetFontFamilyToArial();
 			hintActor->GetTextProperty()->ShadowOn();
@@ -245,6 +244,10 @@ int ExtractCenterline(string surfacePath, vtkPolyData* inputSurface, vtkPolyData
 			int winH = static_cast<int>(screenSize[1] * 0.75);
 			renWin->SetSize(winW, winH);
 			renWin->SetPosition((screenSize[0] - winW) / 2, (screenSize[1] - winH) / 2);
+
+			// Scale font to window width: ~1pt per 60px, clamped to [16, 36]
+			int fontSize = std::max(16, std::min(36, winW / 60));
+			hintActor->GetTextProperty()->SetFontSize(fontSize);
 
 			vtkSmartPointer<MouseInteractorStyleCenterline> style = vtkSmartPointer<MouseInteractorStyleCenterline>::New();
 			iren->SetInteractorStyle(style);
