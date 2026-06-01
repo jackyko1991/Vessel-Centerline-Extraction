@@ -41,12 +41,15 @@ set(SOURCES
   src/interactorStyleCenterline.cpp
   src/NonManifoldSurfaceChecker.cpp)
 
-add_executable(CenterlineExtraction ${SOURCES})
+add_executable(CenterlineExtraction MACOSX_BUNDLE ${SOURCES})
 
-# Embed VMTK and pixi lib dirs as rpaths so the binary runs without
-# DYLD_LIBRARY_PATH. VMTK dylibs live in the build-time install prefix,
-# not in the pixi env, so dyld won't find them without this.
 set_target_properties(CenterlineExtraction PROPERTIES
+  # macOS bundle metadata — sets the Dock/menu bar app name
+  MACOSX_BUNDLE_BUNDLE_NAME        "Vessel Centerline Extraction"
+  MACOSX_BUNDLE_GUI_IDENTIFIER     "org.jackyko1991.vessel-centerline-extraction"
+  MACOSX_BUNDLE_BUNDLE_VERSION     "${PROJECT_VERSION}"
+  MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
+  # Embed rpaths so the binary finds VMTK dylibs without DYLD_LIBRARY_PATH
   BUILD_WITH_INSTALL_RPATH TRUE
   INSTALL_RPATH "${VMTK_DIR}")
 
@@ -95,4 +98,5 @@ add_subdirectory(tests)
 
 # Install
 install(TARGETS CenterlineExtraction
+  BUNDLE  DESTINATION .
   RUNTIME DESTINATION bin)
