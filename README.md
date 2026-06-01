@@ -23,13 +23,27 @@ The output centerline `.vtp` file contains:
 
 ## Usage
 
+After building, run the binary directly (do **not** use `open` on macOS — the bundle will close immediately):
+
 ```bash
-# macOS (run the binary inside the bundle directly — do not use `open`)
+# macOS
 ./build/app/CenterlineExtraction.app/Contents/MacOS/CenterlineExtraction \
   <surface.stl> <capped_surface.stl> <centerline.vtp>
 
 # Linux
 ./build/app/CenterlineExtraction <surface.stl> <capped_surface.stl> <centerline.vtp>
+```
+
+Example with the bundled test data:
+
+```bash
+# macOS
+./build/app/CenterlineExtraction.app/Contents/MacOS/CenterlineExtraction \
+  test_data/left/lumen.stl test_data/left/leftlumen_capped.stl /tmp/out.vtp
+
+# Linux
+./build/app/CenterlineExtraction \
+  test_data/left/lumen.stl test_data/left/leftlumen_capped.stl /tmp/out.vtp
 ```
 
 Output is in VTK PolyData format (`.vtp`). Open with [ParaView](https://www.paraview.org/).
@@ -38,10 +52,11 @@ Output is in VTK PolyData format (`.vtp`). Open with [ParaView](https://www.para
 
 | Key | Action |
 |-----|--------|
-| `n` | Add new inlet/outlet seed point |
-| `Space` | Place seed at cursor position |
-| `Tab` | Toggle seed type (red = inlet, green = outlet) |
-| `Enter` | Compute centerline |
+| `n` | Add a new seed point at the origin |
+| `Space` | Place the current seed at the cursor position |
+| `Tab` | Toggle seed type — **red** = inlet, **green** = outlet |
+| `Enter` | Compute centerline from placed seeds |
+| `Q` | Quit |
 
 ## Build from Source
 

@@ -223,7 +223,7 @@ int ExtractCenterline(string surfacePath, vtkPolyData* inputSurface, vtkPolyData
 			// Hint text overlay at the bottom of the window
 			vtkSmartPointer<vtkTextActor> hintActor = vtkSmartPointer<vtkTextActor>::New();
 			hintActor->SetInput(
-				"[N] New seed   [Space] Place seed   [Tab] Toggle inlet/outlet   [Enter] Compute   [Q] Quit");
+				"[N] New seed   [Space] Place seed   [Tab] Toggle type: Inlet (red) / Outlet (green)   [Enter] Compute   [Q] Quit");
 			hintActor->GetTextProperty()->SetColor(0.9, 0.9, 0.9);
 			hintActor->GetTextProperty()->SetFontFamilyToArial();
 			hintActor->GetTextProperty()->ShadowOn();
