@@ -23,6 +23,8 @@
 #include <vtkPointData.h>
 #include <vtkLookupTable.h>
 #include <vtkScalarBarActor.h>
+#include <vtkTextActor.h>
+#include <vtkTextProperty.h>
 #include <vtkCleanPolyData.h>
 #include <vtkTriangleFilter.h>
 #include <vtkXMLImageDataWriter.h>
@@ -216,14 +218,36 @@ int ExtractCenterline(string surfacePath, vtkPolyData* inputSurface, vtkPolyData
 			vtkSmartPointer<vtkRenderer> ren = vtkSmartPointer<vtkRenderer>::New();
 			ren->AddActor(surfaceActor);
 			ren->AddActor(centerlineActor);
+			ren->SetBackground(0.1, 0.1, 0.1);
+
+			// Hint text overlay at the bottom of the window
+			vtkSmartPointer<vtkTextActor> hintActor = vtkSmartPointer<vtkTextActor>::New();
+			hintActor->SetInput(
+				"[N] New seed   [Space] Place seed   [Tab] Toggle inlet/outlet   [Enter] Compute   [Q] Quit");
+			hintActor->GetTextProperty()->SetFontSize(14);
+			hintActor->GetTextProperty()->SetColor(0.9, 0.9, 0.9);
+			hintActor->GetTextProperty()->SetFontFamilyToArial();
+			hintActor->GetTextProperty()->ShadowOn();
+			hintActor->GetPositionCoordinate()->SetCoordinateSystemToNormalizedViewport();
+			hintActor->SetPosition(0.01, 0.01);
+			ren->AddActor2D(hintActor);
 
 			vtkSmartPointer<vtkRenderWindow> renWin = vtkSmartPointer<vtkRenderWindow>::New();
 			renWin->AddRenderer(ren);
+			renWin->SetWindowName("Vessel Centerline Extraction");
 
+			// Size the window to 75% of the screen resolution
 			vtkSmartPointer<vtkRenderWindowInteractor> iren = vtkSmartPointer<vtkRenderWindowInteractor>::New();
+			iren->SetRenderWindow(renWin);
+			iren->Initialize();
+			int* screenSize = renWin->GetScreenSize();
+			int winW = static_cast<int>(screenSize[0] * 0.75);
+			int winH = static_cast<int>(screenSize[1] * 0.75);
+			renWin->SetSize(winW, winH);
+			renWin->SetPosition((screenSize[0] - winW) / 2, (screenSize[1] - winH) / 2);
+
 			vtkSmartPointer<MouseInteractorStyleCenterline> style = vtkSmartPointer<MouseInteractorStyleCenterline>::New();
 			iren->SetInteractorStyle(style);
-			iren->SetRenderWindow(renWin);
 			style->SetSurface(cappedSurface);
 			style->SetCenterline(centerline);
 
@@ -237,8 +261,6 @@ int ExtractCenterline(string surfacePath, vtkPolyData* inputSurface, vtkPolyData
 				cylindricalShape = 0;
 			}
 
-
-			iren->Initialize();
 			renWin->Render();
 			ren->ResetCamera();
 			iren->Start();
