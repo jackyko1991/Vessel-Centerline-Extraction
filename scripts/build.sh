@@ -40,4 +40,10 @@ echo "==> Running tests..."
 pixi run ctest --test-dir "$BUILD_DIR" --output-on-failure
 
 echo ""
-echo "Build complete. Binary: $BUILD_DIR/CenterlineExtraction"
+if [ -d "$BUILD_DIR/CenterlineExtraction.app" ]; then
+  echo "Build complete."
+  echo "  macOS app: $BUILD_DIR/CenterlineExtraction.app"
+  echo "  Run:       open $BUILD_DIR/CenterlineExtraction.app --args <surface.stl> <capped.stl> <out.vtp>"
+else
+  echo "Build complete. Binary: $BUILD_DIR/CenterlineExtraction"
+fi
