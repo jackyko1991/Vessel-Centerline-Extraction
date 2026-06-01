@@ -43,6 +43,13 @@ set(SOURCES
 
 add_executable(CenterlineExtraction ${SOURCES})
 
+# Embed VMTK and pixi lib dirs as rpaths so the binary runs without
+# DYLD_LIBRARY_PATH. VMTK dylibs live in the build-time install prefix,
+# not in the pixi env, so dyld won't find them without this.
+set_target_properties(CenterlineExtraction PROPERTIES
+  BUILD_WITH_INSTALL_RPATH TRUE
+  INSTALL_RPATH "${VMTK_DIR}")
+
 # Collect installed VMTK libraries (avoids vtkvmtkContrib which isn't built)
 file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/libvtkvmtk*.dylib" "${VMTK_DIR}/libvtkvmtk*.so")
 
