@@ -5,7 +5,6 @@
 #include <vtkSmartPointer.h>
 #include <vtkvmtkNeighborhood.h>
 
-using namespace std;
 
 class NonManifoldSurfaceChecker
 {

@@ -1,46 +1,78 @@
-# Vessel-Centerline-Extraction
-An interactive software to extract vessel centerline. The open end vessel will be enclosed in the process. Following parameters will be included in the output centerline vtp file:
+# Vessel Centerline Extraction
 
-- Abscissas
-- Curvature
-- Frenet system (Binomal, Normal, Tangent)
-- Parallel Transport Normals
-- Radius
-- Torsion
+An interactive CLI tool to extract vessel centerlines from surface meshes. Open vessel ends are automatically capped during processing.
 
-## Usage
-`CenterlineExtraction.exe <surface.stl> <capped_surface.stl> <centerline.vtp>`
-<p align="left"> 
+<p align="left">
 <img src="./doc/img/result_large.jpg" width="359px" height="266px" title="Result"/>
 </p>
 
+[![CI](https://github.com/jackyko1991/Vessel-Centerline-Extraction/actions/workflows/build.yml/badge.svg)](https://github.com/jackyko1991/Vessel-Centerline-Extraction/actions/workflows/build.yml)
 
-## Interaction Keys:
-`n` - New inlet/outlet point
+## Output Arrays
 
-`space` - locating the inlet/outlet point
+The output centerline `.vtp` file contains:
 
-`tab` - change inlet/outlet point type (red: inlet, green: outlet)
+| Array | Description |
+|-------|-------------|
+| Abscissas | Arc-length along centerline |
+| Curvature | Local curvature |
+| FrenetBinormal / FrenetNormal / FrenetTangent | Frenet frame vectors |
+| ParallelTransportNormals | Parallel transport frame |
+| Radius | Inscribed sphere radius (vessel lumen radius) |
+| Torsion | Local torsion |
 
-`enter` - process
+## Usage
 
-Output data is in VTK polydata format(.vtp). You may open with [Paraview](https://www.paraview.org/).
+```bash
+CenterlineExtraction <surface.stl> <capped_surface.stl> <centerline.vtp>
+```
+
+Output is in VTK PolyData format (`.vtp`). Open with [ParaView](https://www.paraview.org/).
+
+## Interaction Keys
+
+| Key | Action |
+|-----|--------|
+| `n` | Add new inlet/outlet seed point |
+| `Space` | Place seed at cursor position |
+| `Tab` | Toggle seed type (red = inlet, green = outlet) |
+| `Enter` | Compute centerline |
 
 ## Build from Source
+
 ### Prerequisites
-- [CMake](https://cmake.org/)
-- [VTK](https://github.com/Kitware/VTK.git)
-- [ITK](https://github.com/InsightSoftwareConsortium/ITK.git)
-- [VMTK](https://github.com/vmtk/vmtk)
-- [Qt](https://www.qt.io/)
 
-### Compilation Procedure
-- [Windows](./doc/build-en.md)
-- [Ubuntu Developer Build](./doc/build-en.md)
-- Ubuntu [\[Eng\]](./doc/build-ubuntu-en.md) [\[中\]](https://github.com/jackyko1991/Vessel-Centerline-Extraction/issues/2)
+Install [pixi](https://pixi.sh):
 
-## Prebuild Binary
-Prebuild binary for Windows can be downloaded [here](https://github.com/jackyko1991/Vessel-Centerline-Extraction/releases)
+```bash
+curl -fsSL https://pixi.sh/install.sh | bash
+```
+
+### Build
+
+```bash
+git clone https://github.com/jackyko1991/Vessel-Centerline-Extraction
+cd Vessel-Centerline-Extraction
+bash scripts/build.sh
+```
+
+The script will:
+1. Install VTK 9, ITK, CMake and Ninja via pixi (conda-forge) — no system installs needed
+2. Build VMTK from source into `build/vmtk-install/` (~20–40 min on first run, skipped if cached)
+3. Configure and compile `CenterlineExtraction`
+4. Run unit tests against the bundled test data
+
+### Platforms
+
+| Platform | Status |
+|----------|--------|
+| macOS Apple Silicon (arm64) | Supported |
+| macOS Intel (x86_64) | Supported |
+| Linux (x86_64) | Supported (CI tested) |
+| Windows (x86_64) | Supported |
+
+On Windows, run `scripts\build.bat` from a Command Prompt instead. VMTK is installed automatically as a prebuilt conda-forge package — no source build required.
 
 ## GUI Version
-GUI verion can be found in [this repository](https://github.com/jackyko1991/Vessel-Clipper).
+
+A Qt-based GUI version is available at [Vessel-Clipper](https://github.com/jackyko1991/Vessel-Clipper).

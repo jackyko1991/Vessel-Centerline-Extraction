@@ -1,55 +1,91 @@
-cmake_minimum_required(VERSION 2.8)
- 
-if(POLICY CMP0020)
-  cmake_policy(SET CMP0020 NEW)
-endif()
- 
-PROJECT(CenterlineExtraction)
- 
-find_package(VMTK REQUIRED)
-include(${VMTK_USE_FILE})
+cmake_minimum_required(VERSION 3.16)
+project(CenterlineExtraction VERSION 2.0.0 LANGUAGES CXX)
 
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# VTK conda-forge build requires Python3 to be found first (it was built with Python wrapping)
+find_package(Python3 COMPONENTS Interpreter Development)
+
+# VTK 9 — no VTK_USE_FILE, use vtk_module_autoinit instead
+find_package(VTK 9.0 REQUIRED COMPONENTS
+  CommonCore
+  CommonDataModel
+  FiltersCore
+  FiltersGeneral
+  FiltersSources
+  IOGeometry
+  IOXML
+  RenderingCore
+  RenderingOpenGL2
+  RenderingAnnotation
+  RenderingVolume
+  InteractionStyle
+  RenderingFreeType)
+
+# ITK
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
 
-find_package(VTK REQUIRED)
-include(${VTK_USE_FILE})
- 
-if(${VTK_VERSION} VERSION_GREATER "6" AND VTK_QT_VERSION VERSION_GREATER "4")
-  # Instruct CMake to run moc automatically when needed.
-  set(CMAKE_AUTOMOC ON)
-  find_package(Qt5Widgets REQUIRED QUIET)
+# VMTK — skip VMTKUse.cmake: it calls link_libraries() globally and includes
+# vtkvmtkContrib which is not built. Instead, set include dirs manually and
+# link only the installed libraries.
+set(VMTK_DIR "" CACHE PATH "Path to VMTK install directory")
+find_package(VMTK REQUIRED HINTS ${VMTK_DIR} $ENV{VMTK_DIR})
+# Do NOT include(${VMTK_USE_FILE}) — use explicit target settings below
+
+# Sources — explicit list, no GLOB
+set(SOURCES
+  src/main.cpp
+  src/Centerline.cpp
+  src/interactorStyleCenterline.cpp
+  src/NonManifoldSurfaceChecker.cpp)
+
+add_executable(CenterlineExtraction ${SOURCES})
+
+# Collect installed VMTK libraries (avoids vtkvmtkContrib which isn't built)
+file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/libvtkvmtk*.dylib" "${VMTK_DIR}/libvtkvmtk*.so")
+
+target_include_directories(CenterlineExtraction PRIVATE
+  include
+  ${VMTK_INCLUDE_DIRS}
+  ${ITK_INCLUDE_DIRS})
+
+target_link_directories(CenterlineExtraction PRIVATE ${VMTK_DIR})
+
+target_link_libraries(CenterlineExtraction PRIVATE
+  ${VTK_LIBRARIES}
+  ${ITK_LIBRARIES}
+  ${VMTK_INSTALLED_LIBS})
+
+# VMTK dylibs were built against VTK conda-forge (which includes Python wrapping).
+# Those wrapping libs use flat namespace lookup for libpython symbols at load time.
+# We link libpython explicitly so dyld resolves it — no Python code is executed.
+find_library(PYTHON_LIB
+  NAMES python3.14 python3.13 python3.12 python3.11 python3
+  HINTS "${Python3_ROOT_DIR}/lib" "$ENV{CONDA_PREFIX}/lib"
+  NO_DEFAULT_PATH)
+if(PYTHON_LIB)
+  message(STATUS "Linking libpython for flat-namespace resolution: ${PYTHON_LIB}")
+  # -needed_library marks the dylib as LC_LOAD_DYLIB even when -dead_strip_dylibs
+  # would normally remove it (because we reference no Python symbols directly).
+  # This is required because VMTK's dylibs use flat namespace lookup for libpython.
+  target_link_options(CenterlineExtraction PRIVATE
+    "LINKER:-needed_library,${PYTHON_LIB}")
 else()
-  find_package(Qt4 REQUIRED)
-  include(${QT_USE_FILE})
+  message(WARNING "libpython not found — runtime may fail if VMTK uses Python wrapping")
 endif()
- 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR})
- 
-file(GLOB UI_FILES *.ui)
-file(GLOB QT_WRAP *.h)
-file(GLOB CPP_FILES *.cpp)
-file(GLOB CXX_FILES *.cxx)
- 
-if(${VTK_VERSION} VERSION_GREATER "6" AND VTK_QT_VERSION VERSION_GREATER "4")
-  qt5_wrap_ui(UISrcs ${UI_FILES} )
-  # CMAKE_AUTOMOC in ON so the MOC headers will be automatically wrapped.
-  add_executable(CenterlineExtraction MACOSX_BUNDLE
-    ${CXX_FILES} ${CPP_FILES} ${UISrcs} ${QT_WRAP})
-  qt5_use_modules(CenterlineExtraction Core Gui)
-  target_link_libraries(CenterlineExtraction ${VTK_LIBRARIES})
-else()
-  QT4_WRAP_UI(UISrcs ${UI_FILES})
-  QT4_WRAP_CPP(MOCSrcs ${QT_WRAP})
-  add_executable(CenterlineExtraction MACOSX_BUNDLE ${CXX_FILES} ${CPP_FILES} ${UISrcs} ${MOCSrcs})
- 
-  if(VTK_LIBRARIES)
-    if(${VTK_VERSION} VERSION_LESS "6")
-      target_link_libraries(CenterlineExtraction ${VTK_LIBRARIES} QVTK)
-    else()
-      target_link_libraries(CenterlineExtraction ${VTK_LIBRARIES} ${QT_LIBRARIES})
-    endif()
-  else()
-    target_link_libraries(CenterlineExtraction vtkHybrid QVTK vtkViews ${QT_LIBRARIES})
-  endif()
-endif()
+
+# Required for VTK 9 factory initialisation
+vtk_module_autoinit(
+  TARGETS CenterlineExtraction
+  MODULES ${VTK_LIBRARIES})
+
+# Testing
+include(CTest)
+enable_testing()
+add_subdirectory(tests)
+
+# Install
+install(TARGETS CenterlineExtraction
+  RUNTIME DESTINATION bin)

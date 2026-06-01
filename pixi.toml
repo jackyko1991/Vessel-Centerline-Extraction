@@ -1,0 +1,36 @@
+[workspace]
+name = "vessel-centerline-extraction"
+version = "2.0.0"
+description = "Interactive vessel centerline extraction using VTK and VMTK"
+channels = ["conda-forge"]
+platforms = ["osx-arm64", "linux-64", "win-64"]
+
+[dependencies]
+cmake = ">=3.16"
+ninja = "*"
+vtk = ">=9.0"
+libitk = "*"
+libitk-devel = "*"
+
+[target.osx-arm64.dependencies]
+c-compiler = "*"
+cxx-compiler = "*"
+
+[target.linux-64.dependencies]
+c-compiler = "*"
+cxx-compiler = "*"
+mesa-libgl-devel-cos7-x86_64 = "*"
+
+# Windows: VMTK has prebuilt conda-forge packages — no source build needed
+[target.win-64.dependencies]
+cxx-compiler = "*"
+c-compiler = "*"
+vmtk = "*"
+
+[tasks]
+# macOS / Linux: build VMTK from source (Windows: pixi install handles it via vmtk package above)
+build-vmtk = { cmd = "bash scripts/build-vmtk.sh" }
+configure = { cmd = "cmake -G Ninja -S . -B build/app -DCMAKE_BUILD_TYPE=Release -DVMTK_DIR=build/vmtk-install/lib", depends-on = ["build-vmtk"] }
+build = { cmd = "cmake --build build/app --parallel", depends-on = ["configure"] }
+test = { cmd = "ctest --test-dir build/app --output-on-failure", depends-on = ["build"] }
+all = { depends-on = ["test"] }

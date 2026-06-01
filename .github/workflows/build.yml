@@ -1,0 +1,45 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up pixi
+        uses: prefix-dev/setup-pixi@v0.8.1
+        with:
+          pixi-version: latest
+          cache: true
+
+      - name: Cache VMTK build
+        uses: actions/cache@v4
+        id: vmtk-cache
+        with:
+          path: build/vmtk-install
+          key: vmtk-${{ runner.os }}-${{ hashFiles('scripts/build-vmtk.sh') }}
+
+      - name: Build VMTK from source
+        if: steps.vmtk-cache.outputs.cache-hit != 'true'
+        run: pixi run bash scripts/build-vmtk.sh
+
+      - name: Configure
+        run: |
+          pixi run cmake -G Ninja \
+            -S . \
+            -B build/app \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DVMTK_DIR=build/vmtk-install
+
+      - name: Build
+        run: pixi run cmake --build build/app --parallel 4
+
+      - name: Test
+        run: pixi run ctest --test-dir build/app --output-on-failure

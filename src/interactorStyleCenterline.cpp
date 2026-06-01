@@ -1,4 +1,5 @@
 #include "interactorStyleCenterline.h"
+#include <iostream>
 
 void MouseInteractorStyleCenterline::OnKeyPress()
 {
@@ -18,10 +19,9 @@ void MouseInteractorStyleCenterline::OnKeyPress()
 
 			// Create a sphere
 			vtkSmartPointer<vtkSphereSource> sphereSource = vtkSmartPointer<vtkSphereSource>::New();
-			double sphereCenter[3];
 			sphereSource->SetCenter(0, 0, 0);
 			sphereSource->SetRadius(0.3);
-			seedList.insert(m_numOfSeeds, sphereSource);
+			seedList.insert({m_numOfSeeds, sphereSource});
 
 			m_currentSeedPosition[0] = sphereSource->GetCenter()[0];
 			m_currentSeedPosition[1] = sphereSource->GetCenter()[1];
@@ -37,12 +37,12 @@ void MouseInteractorStyleCenterline::OnKeyPress()
 			else
 				sphereActor->GetProperty()->SetColor(0, 1, 0);
 
-			seedActorList.insert(m_numOfSeeds, sphereActor);
-			seedTypeList.insert(m_numOfSeeds, m_currentSeedType);
+			seedActorList.insert({m_numOfSeeds, sphereActor});
+			seedTypeList.insert({m_numOfSeeds, m_currentSeedType});
 			this->GetCurrentRenderer()->AddActor(sphereActor);
 		}
 		else
-			cout << "Invalid seed position, no new seed is inserted" << endl;
+			std::cout << "Invalid seed position, no new seed is inserted" << std::endl;
 	}
 	else if (key == "Tab")
 	{
@@ -50,7 +50,7 @@ void MouseInteractorStyleCenterline::OnKeyPress()
 		m_currentSeedType = !m_currentSeedType;
 		if (m_currentSeedType == 0)
 		{
-			cout << "Current seed type is source" << endl;
+			std::cout << "Current seed type is source" << std::endl;
 			if (m_numOfSeeds > 0)
 			{
 				m_numOfSourceSeed++;
@@ -62,17 +62,18 @@ void MouseInteractorStyleCenterline::OnKeyPress()
 		}
 		else
 		{
-			cout << "Current seed type is target" << endl;
+			std::cout << "Current seed type is target" << std::endl;
 			if (m_numOfSeeds > 0)
 			{
-				if (m_numOfSourceSeed>0)
-					m_numOfSourceSeed --;
+				if (m_numOfSourceSeed > 0)
+					m_numOfSourceSeed--;
 				m_numOfTargetSeed++;
 				seedTypeList[m_numOfSeeds] = m_currentSeedType;
 				this->GetCurrentRenderer()->GetActors()->GetLastActor()->GetProperty()->SetColor(0, 1, 0);
-			}	
+			}
 		}
-		cout << "Number of source seeds = " << m_numOfSourceSeed << ", number of target seeds = " << m_numOfTargetSeed << endl;
+		std::cout << "Number of source seeds = " << m_numOfSourceSeed
+		          << ", number of target seeds = " << m_numOfTargetSeed << std::endl;
 	}
 	else if (key == "space")
 	{
@@ -88,27 +89,22 @@ void MouseInteractorStyleCenterline::OnKeyPress()
 		m_currentSeedPosition[2] = picked[2];
 
 		if (m_numOfSeeds != 0)
-		{
 			seedList[m_numOfSeeds]->SetCenter(picked);
-			
-		}
-
-		//cout << picked[0] << "," << picked[1] << "," << picked[2] << endl;
 	}
 	else if (key == "Return")
 	{
-		if (m_numOfSourceSeed == 0 && m_numOfTargetSeed==0)
-			cout << "Source/target seed not found" << endl;
-		else if (m_numOfSourceSeed == 0 && m_numOfTargetSeed>0)
-			cout << "Source seed not found" << endl;
-		else if (m_numOfSourceSeed > 0 && m_numOfTargetSeed==0)
-			cout << "Target seed not found" << endl;
+		if (m_numOfSourceSeed == 0 && m_numOfTargetSeed == 0)
+			std::cout << "Source/target seed not found" << std::endl;
+		else if (m_numOfSourceSeed == 0 && m_numOfTargetSeed > 0)
+			std::cout << "Source seed not found" << std::endl;
+		else if (m_numOfSourceSeed > 0 && m_numOfTargetSeed == 0)
+			std::cout << "Target seed not found" << std::endl;
 		else if (m_currentSeedPosition[0] == 0 && m_currentSeedPosition[1] == 0 && m_currentSeedPosition[2] == 0)
-			cout << "Invalid seed position, cannot calculate centerline" << endl;
+			std::cout << "Invalid seed position, cannot calculate centerline" << std::endl;
 		else
 		{
-			cout << "Centerline calculation in progress" << endl;
-			// Create the kd tree
+			std::cout << "Centerline calculation in progress" << std::endl;
+
 			vtkSmartPointer<vtkKdTreePointLocator> kDTree = vtkSmartPointer<vtkKdTreePointLocator>::New();
 			kDTree->SetDataSet(m_surface);
 			kDTree->BuildLocator();
@@ -121,12 +117,9 @@ void MouseInteractorStyleCenterline::OnKeyPress()
 			int _sourceSeedCount = 0;
 			int _targetSeedCount = 0;
 
-			for (int i = 0; i < m_numOfSeeds; i++)
+			for (int i = 0; i < (int)m_numOfSeeds; i++)
 			{
-				// Find the closest point ids to the seeds
-				//cout << seedList[i+1]->GetCenter()[0] << "," << seedList[i]->GetCenter()[1] << "," << seedList[i]->GetCenter()[2];
 				vtkIdType iD = kDTree->FindClosestPoint(seedList[i + 1]->GetCenter());
-				//std::cout << "The closest point is point " << iD << std::endl;
 				if (seedTypeList[i + 1] == 0)
 				{
 					sourceIds->SetId(_sourceSeedCount, iD);
@@ -137,7 +130,6 @@ void MouseInteractorStyleCenterline::OnKeyPress()
 					targetIds->SetId(_targetSeedCount, iD);
 					_targetSeedCount++;
 				}
-
 				seedActorList[i + 1]->SetVisibility(0);
 			}
 
@@ -150,10 +142,8 @@ void MouseInteractorStyleCenterline::OnKeyPress()
 
 			m_centerline->DeepCopy(centerline->GetCenterline());
 
-			// set surface opacity
 			vtkActor* actor = vtkActor::SafeDownCast(this->GetCurrentRenderer()->GetActors()->GetItemAsObject(0));
 			actor->GetProperty()->SetOpacity(0.5);
-
 		}
 	}
 

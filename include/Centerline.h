@@ -11,7 +11,6 @@
 #include <vtkvmtkCapPolyData.h>
 #include <vtkvmtkPolyDataCenterlines.h>
 
-using namespace std;
 
 class Centerline
 {
@@ -27,7 +26,7 @@ public:
 	void SetLookupTable(vtkLookupTable* LUT);
 	void SetAppendEndPoints(bool appendFlag);
 	void Update();
-	
+
 	void GetSurface(vtkPolyData* surface);
 	void GetCappedSurface(vtkPolyData* cappedSurface);
 	void GetCenterline(vtkPolyData* centerline);

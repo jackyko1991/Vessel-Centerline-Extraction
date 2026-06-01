@@ -1,4 +1,7 @@
 #include <iostream>
+#include <filesystem>
+#include <algorithm>
+#include <string>
 #include <vtkXMLPolyDataReader.h>
 #include <vtkXMLPolyDataWriter.h>
 #include <vtkSmartPointer.h>
@@ -41,25 +44,22 @@
 #include <vtkvmtkPolyDataPatchingFilter.h>
 #include <vtkvmtkCenterlineGeometry.h>
 
-#include <QFileInfo>
-#include <QDir>
-
 #include "interactorStyleCenterline.h"
 #include "Centerline.h"
 #include "NonManifoldSurfaceChecker.h"
+
+namespace fs = std::filesystem;
 
 using namespace std;
 
 int WriteCenterline(vtkPolyData* centerline, string centerlinePath)
 {
-	QFileInfo centerlinePathInfo(centerlinePath.c_str());
-	QDir centerlineDir = centerlinePathInfo.absoluteDir();
+	fs::path centerlinePathInfo(centerlinePath);
+	std::string ext = centerlinePathInfo.extension().string();
+	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 
-	if (centerlineDir.exists() &&
-		(centerlinePathInfo.suffix().toStdString() == "vtp" ||
-			centerlinePathInfo.suffix().toStdString() == "VTP" ||
-			centerlinePathInfo.suffix().toStdString() == "vtk" ||
-			centerlinePathInfo.suffix().toStdString() == "VTK"))
+	if (fs::exists(centerlinePathInfo.parent_path()) &&
+		(ext == ".vtp" || ext == ".vtk"))
 	{
 
 		// compute centerline attribute, geometry and branch splitting
@@ -123,15 +123,17 @@ int WriteCenterline(vtkPolyData* centerline, string centerlinePath)
 		return 0;
 	}
 
-	
+
 }
 
 int ReadSurface(string surfacePath, vtkPolyData* surface)
 {
-	QFileInfo inputSurfaceInfo(surfacePath.c_str());
+	fs::path inputSurfaceInfo(surfacePath);
+	std::string ext = inputSurfaceInfo.extension().string();
+	std::transform(ext.begin(), ext.end(), ext.begin(), ::tolower);
 	cout << "surface file: " << surfacePath << endl;
 
-	if (inputSurfaceInfo.suffix().toStdString() == "stl" || inputSurfaceInfo.suffix().toStdString() == "STL")
+	if (ext == ".stl")
 	{
 		// read surface
 		vtkSmartPointer<vtkSTLReader> reader = vtkSmartPointer<vtkSTLReader>::New();
@@ -139,14 +141,14 @@ int ReadSurface(string surfacePath, vtkPolyData* surface)
 		reader->Update();
 		surface->DeepCopy(reader->GetOutput());
 	}
-	else if (inputSurfaceInfo.suffix().toStdString() == "vtp" || inputSurfaceInfo.suffix().toStdString() == "VTP")
+	else if (ext == ".vtp")
 	{
 		vtkSmartPointer<vtkXMLPolyDataReader> reader = vtkSmartPointer<vtkXMLPolyDataReader>::New();
 		reader->SetFileName(surfacePath.c_str());
 		reader->Update();
 		surface->DeepCopy(reader->GetOutput());
 	}
-	else if (inputSurfaceInfo.suffix().toStdString() == "vtk" || inputSurfaceInfo.suffix().toStdString() == "VTK")
+	else if (ext == ".vtk")
 	{
 		vtkSmartPointer<vtkPolyDataReader> reader = vtkSmartPointer<vtkPolyDataReader>::New();
 		reader->SetFileName(surfacePath.c_str());
@@ -176,9 +178,7 @@ int ReadSurface(string surfacePath, vtkPolyData* surface)
 
 int ExtractCenterline(string surfacePath, vtkPolyData* inputSurface, vtkPolyData* cappedSurface, vtkPolyData* centerline, bool &cylindricalShape)
 {
-	QFileInfo inputSurfaceInfo(surfacePath.c_str());
-
-	if (inputSurfaceInfo.exists())
+	if (fs::exists(surfacePath))
 	{
 		// read surface file
 		if (!ReadSurface(surfacePath.c_str(), inputSurface))
@@ -193,14 +193,14 @@ int ExtractCenterline(string surfacePath, vtkPolyData* inputSurface, vtkPolyData
 			vtkSmartPointer<vtkCleanPolyData> cleaner = vtkSmartPointer<vtkCleanPolyData>::New();
 			cleaner->SetInputData(capper->GetOutput());
 			cleaner->Update();
-			
+
 			vtkSmartPointer<vtkTriangleFilter> triangulator = vtkSmartPointer<vtkTriangleFilter>::New();
 			triangulator->SetInputData(cleaner->GetOutput());
 			triangulator->PassLinesOff();
 			triangulator->PassVertsOff();
 			triangulator->Update();
-			
-			cappedSurface->DeepCopy(triangulator->GetOutput());			
+
+			cappedSurface->DeepCopy(triangulator->GetOutput());
 
 			vtkSmartPointer<vtkPolyDataMapper> surfaceMapper = vtkSmartPointer<vtkPolyDataMapper>::New();
 			surfaceMapper->SetInputData(cappedSurface);
@@ -236,7 +236,7 @@ int ExtractCenterline(string surfacePath, vtkPolyData* inputSurface, vtkPolyData
 			{
 				cylindricalShape = 0;
 			}
-				
+
 
 			iren->Initialize();
 			renWin->Render();
@@ -250,7 +250,7 @@ int ExtractCenterline(string surfacePath, vtkPolyData* inputSurface, vtkPolyData
 		return 0;
 }
 
-inline bool fileExists(const std::string& name) 
+inline bool fileExists(const std::string& name)
 {
 	ifstream f(name.c_str());
 	return f.good();
@@ -271,7 +271,7 @@ int main(int argc, char *argv[])
 {
 	if (argc < 2)
 	{
-		cout << "Usage: Centerline.exe surface.stl capped_surface.stl centerline.vtp" << endl;
+		cout << "Usage: CenterlineExtraction surface.stl capped_surface.stl centerline.vtp" << endl;
 		return 0;
 	}
 	else
@@ -292,13 +292,13 @@ int main(int argc, char *argv[])
 			{
 				// write the capped file
 				if (!WriteCappedSurface(cappedSurface, argv[2]))
-					return 0;					
-				
+					return 0;
+
 				if (!WriteCenterline(centerline, argv[3]))
 					return 0;
 			}
 		}
-		//	
+		//
 
 		//system("pause");
 	}

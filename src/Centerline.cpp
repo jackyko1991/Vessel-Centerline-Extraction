@@ -16,7 +16,7 @@ Centerline::~Centerline()
 void Centerline::SetSurface(vtkPolyData* surface)
 {
 	m_surface = surface;
-	
+
 	// obtain cap centers automatically
 	vtkSmartPointer<vtkIdList> CapCenterIds = vtkSmartPointer<vtkIdList>::New();
 	this->CapSurface(surface, m_cappedSurface, CapCenterIds);
@@ -24,7 +24,7 @@ void Centerline::SetSurface(vtkPolyData* surface)
 	vtkSmartPointer<vtkIdList> sourceIds = vtkSmartPointer<vtkIdList>::New();
 	sourceIds->SetNumberOfIds(1);
 	sourceIds->SetId(0, CapCenterIds->GetId(0));
-	
+
 	vtkSmartPointer<vtkIdList> targetIds = vtkSmartPointer<vtkIdList>::New();
 	targetIds->SetNumberOfIds(CapCenterIds->GetNumberOfIds() - 1);
 	for (int i = 1; i < CapCenterIds->GetNumberOfIds(); i++)
@@ -63,11 +63,11 @@ void Centerline::CapSurface(vtkPolyData* inputSurface, vtkPolyData* cappedSurfac
 {
 	m_cappedSurface = vtkSmartPointer<vtkPolyData>::New();
 
-	// calculate centerlines of lumen and vessl outer wall
 	vtkSmartPointer<vtkvmtkCapPolyData> capper = vtkSmartPointer<vtkvmtkCapPolyData>::New();
 	capper->SetInputData(inputSurface);
 	capper->Update();
-	cappedSurface->DeepCopy(capper->GetOutput());
+	// Use m_cappedSurface directly — cappedSurface param is a copy of the NULL pointer
+	m_cappedSurface->DeepCopy(capper->GetOutput());
 	CapCenterIds->DeepCopy(capper->GetCapCenterIds());
 }
 

@@ -21,9 +21,9 @@
 #include <vtkProperty.h>
 #include <vtkActorCollection.h>
 
-#include <Centerline.h>
+#include "Centerline.h"
 
-#include <QMap>
+#include <map>
 
 class MouseInteractorStyleCenterline : public vtkInteractorStyleTrackballCamera
 {
@@ -45,9 +45,9 @@ private:
 	unsigned int m_numOfSourceSeed = 0;
 	unsigned int m_numOfTargetSeed = 0;
 	unsigned int m_numOfSeeds = 0;
-	QMap<unsigned int, vtkSphereSource*> seedList;
-	QMap<unsigned int, vtkActor*> seedActorList;
-	QMap<unsigned int, bool> seedTypeList;
+	std::map<unsigned int, vtkSphereSource*> seedList;
+	std::map<unsigned int, vtkActor*> seedActorList;
+	std::map<unsigned int, bool> seedTypeList;
 	double m_currentSeedPosition[3] = { 0, 0, 0 };
 };
 

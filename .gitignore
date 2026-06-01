@@ -1,4 +1,41 @@
-/build
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+*.dylib
 
-# System hidden files
-.*
+# CMake
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+install_manifest.txt
+CTestTestfile.cmake
+_CPack_Packages/
+
+# IDE
+.vscode/
+.idea/
+*.xcodeproj/
+*.xcworkspace/
+
+# macOS
+.DS_Store
+.AppleDouble
+
+# pixi environment
+.pixi/
+
+# Windows MSVC artifacts
+*.pdb
+*.ilk
+*.exp
+*.lib
+Release/
+Debug/
+x64/
+
+# Compiled binary
+CenterlineExtraction
+CenterlineExtraction.exe
