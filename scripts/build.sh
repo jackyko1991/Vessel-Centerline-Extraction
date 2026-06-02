@@ -17,20 +17,31 @@ fi
 echo "==> Installing pixi dependencies..."
 pixi install
 
-echo "==> Building VMTK from source..."
-pixi run bash scripts/build-vmtk.sh
+OS="$(uname -s)"
+if [[ "$OS" == "Darwin" ]]; then
+  echo "==> Building VMTK from source (no conda-forge package for macOS arm64)..."
+  pixi run bash scripts/build-vmtk.sh
+  VMTK_DIR="$VMTK_INSTALL/lib"
+else
+  echo "==> Using conda-forge VMTK (Linux)..."
+  VMTK_DIR="$(pixi run bash -c 'echo $CONDA_PREFIX')"
+fi
 
 # LIBRARY_PATH lets the linker find bare -lxxx flags from ITK's cmake targets
-# (e.g. -lfftw3_threads) in the pixi prefix, and ensures the VMTK install lib
-# dir is searched when linking the main project.
-export LIBRARY_PATH="$VMTK_INSTALL/lib:$(pixi run python3 -c 'import sys; print(__import__("sysconfig").get_path("stdlib"))' 2>/dev/null | xargs dirname 2>/dev/null):${LIBRARY_PATH:-}"
+# (e.g. -lfftw3_threads) in the pixi prefix.
+# macOS: VMTK_DIR is already the lib dir; Linux: libs are in VMTK_DIR/lib.
+if [[ "$OS" == "Darwin" ]]; then
+  export LIBRARY_PATH="$VMTK_DIR:${LIBRARY_PATH:-}"
+else
+  export LIBRARY_PATH="$VMTK_DIR/lib:${LIBRARY_PATH:-}"
+fi
 
 echo "==> Configuring CenterlineExtraction..."
 pixi run cmake -G Ninja \
   -S "$ROOT_DIR" \
   -B "$BUILD_DIR" \
   -DCMAKE_BUILD_TYPE=Release \
-  -DVMTK_DIR="$VMTK_INSTALL/lib"
+  -DVMTK_DIR="$VMTK_DIR"
 
 echo "==> Building..."
 NPROC="$(nproc 2>/dev/null || sysctl -n hw.logicalcpu 2>/dev/null || echo 4)"

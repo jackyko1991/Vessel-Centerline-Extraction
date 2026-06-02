@@ -30,14 +30,26 @@ include(${ITK_USE_FILE})
 # VMTK — skip VMTKUse.cmake: it calls link_libraries() globally and includes
 # vtkvmtkContrib which is not built. Instead, set include dirs manually and
 # link only the installed libraries.
-set(VMTK_DIR "" CACHE PATH "Path to VMTK install directory")
-if(WIN32)
-  # conda-forge vmtk on Windows ships no VMTKConfig.cmake; set paths manually.
+#
+# Platform layout:
+#   macOS   — source-built VMTK; VMTK_DIR = build/vmtk-install/lib,
+#              VMTKConfig.cmake lives directly in that dir.
+#   Windows — conda-forge; VMTK_DIR = $CONDA_PREFIX/Library,
+#              no VMTKConfig.cmake, libs in VMTK_DIR/lib/.
+#   Linux   — conda-forge; VMTK_DIR = $CONDA_PREFIX,
+#              no VMTKConfig.cmake, libs in VMTK_DIR/lib/.
+set(VMTK_DIR "" CACHE PATH "Path to VMTK install/conda-prefix directory")
+if(APPLE)
+  find_package(VMTK REQUIRED HINTS ${VMTK_DIR} $ENV{VMTK_DIR})
+  set(VMTK_LIB_DIR "${VMTK_DIR}")
+elseif(WIN32)
   set(VMTK_INCLUDE_DIRS "${VMTK_DIR}/include/vmtk")
+  set(VMTK_LIB_DIR "${VMTK_DIR}/lib")
   message(STATUS "Windows: VMTK headers at ${VMTK_INCLUDE_DIRS}")
 else()
-  find_package(VMTK REQUIRED HINTS ${VMTK_DIR} $ENV{VMTK_DIR})
-  # Do NOT include(${VMTK_USE_FILE}) — use explicit target settings above
+  set(VMTK_INCLUDE_DIRS "${VMTK_DIR}/include/vmtk")
+  set(VMTK_LIB_DIR "${VMTK_DIR}/lib")
+  message(STATUS "Linux: VMTK headers at ${VMTK_INCLUDE_DIRS}")
 endif()
 
 # Sources — explicit list, no GLOB
@@ -55,15 +67,17 @@ set_target_properties(CenterlineExtraction PROPERTIES
   MACOSX_BUNDLE_GUI_IDENTIFIER     "org.jackyko1991.vessel-centerline-extraction"
   MACOSX_BUNDLE_BUNDLE_VERSION     "${PROJECT_VERSION}"
   MACOSX_BUNDLE_SHORT_VERSION_STRING "${PROJECT_VERSION}"
-  # Embed rpaths so the binary finds VMTK dylibs without DYLD_LIBRARY_PATH
+  # Embed rpaths so the binary finds VMTK libs without DYLD_LIBRARY_PATH / LD_LIBRARY_PATH
   BUILD_WITH_INSTALL_RPATH TRUE
-  INSTALL_RPATH "${VMTK_DIR}")
+  INSTALL_RPATH "${VMTK_LIB_DIR}")
 
 # Collect installed VMTK libraries (avoids vtkvmtkContrib which isn't built)
 if(WIN32)
-  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/lib/vtkvmtk*.lib")
+  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_LIB_DIR}/vtkvmtk*.lib")
+elseif(APPLE)
+  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_LIB_DIR}/libvtkvmtk*.dylib")
 else()
-  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/libvtkvmtk*.dylib" "${VMTK_DIR}/libvtkvmtk*.so")
+  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_LIB_DIR}/libvtkvmtk*.so")
 endif()
 
 target_include_directories(CenterlineExtraction PRIVATE
@@ -71,11 +85,7 @@ target_include_directories(CenterlineExtraction PRIVATE
   ${VMTK_INCLUDE_DIRS}
   ${ITK_INCLUDE_DIRS})
 
-if(WIN32)
-  target_link_directories(CenterlineExtraction PRIVATE "${VMTK_DIR}/lib")
-else()
-  target_link_directories(CenterlineExtraction PRIVATE ${VMTK_DIR})
-endif()
+target_link_directories(CenterlineExtraction PRIVATE "${VMTK_LIB_DIR}")
 
 target_link_libraries(CenterlineExtraction PRIVATE
   ${VTK_LIBRARIES}

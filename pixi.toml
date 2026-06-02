@@ -20,6 +20,8 @@ cxx-compiler = "*"
 c-compiler = "*"
 cxx-compiler = "*"
 mesa-libgl-devel-cos7-x86_64 = "*"
+vmtk = "*"
+eigen = "<5"
 
 # Windows: VMTK has prebuilt conda-forge packages — no source build needed.
 # Pin eigen <5: win-64 vmtk/libitk packages were built against Eigen 3.x;
@@ -32,9 +34,14 @@ vmtk = "*"
 eigen = "<5"
 
 [tasks]
-# macOS / Linux: build VMTK from source (Windows: pixi install handles it via vmtk package above)
+# macOS arm64 only: build VMTK from source (no conda-forge package for arm64)
 build-vmtk = { cmd = "bash scripts/build-vmtk.sh" }
 configure = { cmd = "cmake -G Ninja -S . -B build/app -DCMAKE_BUILD_TYPE=Release -DVMTK_DIR=build/vmtk-install/lib", depends-on = ["build-vmtk"] }
 build = { cmd = "cmake --build build/app --parallel", depends-on = ["configure"] }
 test = { cmd = "ctest --test-dir build/app --output-on-failure", depends-on = ["build"] }
 all = { depends-on = ["test"] }
+
+# Linux: conda-forge vmtk available — no source build needed
+[target.linux-64.tasks]
+build-vmtk = "echo 'Linux: using conda-forge VMTK, skipping source build'"
+configure = { cmd = "cmake -G Ninja -S . -B build/app -DCMAKE_BUILD_TYPE=Release -DVMTK_DIR=$CONDA_PREFIX", depends-on = ["build-vmtk"] }

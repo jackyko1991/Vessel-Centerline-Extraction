@@ -27,22 +27,24 @@ That's it. The script handles everything automatically.
 
 ## What the Build Script Does
 
-| Step | macOS / Linux | Windows |
-|------|--------------|---------|
-| 1. Dependencies | `pixi install` — VTK 9, ITK, CMake, Ninja via conda-forge | Same, plus VMTK prebuilt package |
-| 2. VMTK | Built from source (~20–40 min, cached after first run) | Installed by pixi (prebuilt conda-forge package) |
-| 3. Configure | `cmake -G Ninja … -DVMTK_DIR=build/vmtk-install` | `cmake -G Ninja …` (VMTK found via conda prefix) |
-| 4. Build | `cmake --build` via ninja | Same |
-| 5. Test | `ctest` | Same |
+| Step | macOS arm64 | Linux | Windows |
+|------|-------------|-------|---------|
+| 1. Dependencies | `pixi install` — VTK 9, ITK, CMake, Ninja via conda-forge | Same, plus VMTK prebuilt package | Same, plus VMTK prebuilt package |
+| 2. VMTK | Built from source (~20–40 min, cached after first run) | Installed by pixi (prebuilt conda-forge package) | Installed by pixi (prebuilt conda-forge package) |
+| 3. Configure | `cmake … -DVMTK_DIR=build/vmtk-install/lib` | `cmake … -DVMTK_DIR=$CONDA_PREFIX` | `cmake …` (VMTK found via conda prefix) |
+| 4. Build | `cmake --build` via ninja | Same | Same |
+| 5. Test | `ctest` | Same | Same |
+
+> **Why macOS builds VMTK from source:** no `arm64` conda-forge package exists for VMTK. Linux and Windows use the prebuilt package.
 
 ## Manual Build (for Developers)
 
-**macOS / Linux:**
+**macOS arm64:**
 ```bash
 # Enter pixi environment
 pixi shell
 
-# Build VMTK (first time only, ~20-40 min)
+# Build VMTK from source (first time only, ~20-40 min)
 bash scripts/build-vmtk.sh
 
 # Configure
@@ -50,7 +52,30 @@ cmake -G Ninja \
   -S . \
   -B build/app \
   -DCMAKE_BUILD_TYPE=Release \
-  -DVMTK_DIR=build/vmtk-install
+  -DVMTK_DIR=build/vmtk-install/lib
+
+# Build
+cmake --build build/app --parallel
+
+# Test
+ctest --test-dir build/app --output-on-failure
+
+# Run
+./build/app/CenterlineExtraction.app/Contents/MacOS/CenterlineExtraction \
+  test_data/left/lumen.stl test_data/left/leftlumen_capped.stl out.vtp
+```
+
+**Linux:**
+```bash
+# Enter pixi environment (installs VMTK via conda-forge automatically)
+pixi shell
+
+# Configure — VMTK is in the conda prefix
+cmake -G Ninja \
+  -S . \
+  -B build/app \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DVMTK_DIR=$CONDA_PREFIX
 
 # Build
 cmake --build build/app --parallel
@@ -84,7 +109,7 @@ build\app\CenterlineExtraction.exe test_data\left\lumen.stl test_data\left\leftl
 
 ## Troubleshooting
 
-**Force a VMTK rebuild:**
+**Force a VMTK rebuild (macOS only):**
 ```bash
 rm -rf build/vmtk-install
 bash scripts/build.sh

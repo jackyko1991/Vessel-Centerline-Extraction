@@ -20,12 +20,15 @@ find_package(VTK 9.0 REQUIRED COMPONENTS
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
 
-if(WIN32)
-  # conda-forge vmtk on Windows ships no VMTKConfig.cmake; set paths manually.
-  set(VMTK_INCLUDE_DIRS "${VMTK_DIR}/include/vmtk")
-else()
+if(APPLE)
   find_package(VMTK REQUIRED HINTS ${VMTK_DIR} $ENV{VMTK_DIR})
-  # Do NOT include(${VMTK_USE_FILE}) — it adds vtkvmtkContrib which isn't built
+  set(VMTK_LIB_DIR "${VMTK_DIR}")
+elseif(WIN32)
+  set(VMTK_INCLUDE_DIRS "${VMTK_DIR}/include/vmtk")
+  set(VMTK_LIB_DIR "${VMTK_DIR}/lib")
+else()
+  set(VMTK_INCLUDE_DIRS "${VMTK_DIR}/include/vmtk")
+  set(VMTK_LIB_DIR "${VMTK_DIR}/lib")
 endif()
 
 get_filename_component(_py_lib_dir "${Python3_LIBRARY}" DIRECTORY)
@@ -39,7 +42,7 @@ add_executable(test_centerline
 # ENVIRONMENT won't work — rpaths in the binary are the only reliable solution.
 set_target_properties(test_centerline PROPERTIES
   BUILD_WITH_INSTALL_RPATH TRUE
-  INSTALL_RPATH "${VMTK_DIR};${_py_lib_dir}")
+  INSTALL_RPATH "${VMTK_LIB_DIR};${_py_lib_dir}")
 
 target_include_directories(test_centerline PRIVATE
   ${CMAKE_SOURCE_DIR}/include
@@ -49,16 +52,14 @@ target_include_directories(test_centerline PRIVATE
 target_compile_features(test_centerline PRIVATE cxx_std_17)
 
 if(WIN32)
-  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/lib/vtkvmtk*.lib")
+  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_LIB_DIR}/vtkvmtk*.lib")
+elseif(APPLE)
+  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_LIB_DIR}/libvtkvmtk*.dylib")
 else()
-  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/libvtkvmtk*.dylib" "${VMTK_DIR}/libvtkvmtk*.so")
+  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_LIB_DIR}/libvtkvmtk*.so")
 endif()
 
-if(WIN32)
-  target_link_directories(test_centerline PRIVATE "${VMTK_DIR}/lib")
-else()
-  target_link_directories(test_centerline PRIVATE ${VMTK_DIR})
-endif()
+target_link_directories(test_centerline PRIVATE "${VMTK_LIB_DIR}")
 
 target_link_libraries(test_centerline PRIVATE
   ${VTK_LIBRARIES}

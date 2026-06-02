@@ -19,24 +19,14 @@ jobs:
           pixi-version: latest
           cache: true
 
-      - name: Cache VMTK build
-        uses: actions/cache@v4
-        id: vmtk-cache
-        with:
-          path: build/vmtk-install
-          key: vmtk-${{ runner.os }}-${{ hashFiles('scripts/build-vmtk.sh') }}
-
-      - name: Build VMTK from source
-        if: steps.vmtk-cache.outputs.cache-hit != 'true'
-        run: pixi run bash scripts/build-vmtk.sh
-
       - name: Configure
         run: |
+          VMTK_DIR=$(pixi run bash -c 'echo $CONDA_PREFIX')
           pixi run cmake -G Ninja \
             -S . \
             -B build/app \
             -DCMAKE_BUILD_TYPE=Release \
-            -DVMTK_DIR=build/vmtk-install
+            -DVMTK_DIR="$VMTK_DIR"
 
       - name: Build
         run: pixi run cmake --build build/app --parallel 4
