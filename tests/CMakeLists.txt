@@ -20,8 +20,13 @@ find_package(VTK 9.0 REQUIRED COMPONENTS
 find_package(ITK REQUIRED)
 include(${ITK_USE_FILE})
 
-find_package(VMTK REQUIRED HINTS ${VMTK_DIR} $ENV{VMTK_DIR})
-# Do NOT include(${VMTK_USE_FILE}) — it adds vtkvmtkContrib which isn't built
+if(WIN32)
+  # conda-forge vmtk on Windows ships no VMTKConfig.cmake; set paths manually.
+  set(VMTK_INCLUDE_DIRS "${VMTK_DIR}/include/vmtk")
+else()
+  find_package(VMTK REQUIRED HINTS ${VMTK_DIR} $ENV{VMTK_DIR})
+  # Do NOT include(${VMTK_USE_FILE}) — it adds vtkvmtkContrib which isn't built
+endif()
 
 get_filename_component(_py_lib_dir "${Python3_LIBRARY}" DIRECTORY)
 
@@ -43,16 +48,24 @@ target_include_directories(test_centerline PRIVATE
 
 target_compile_features(test_centerline PRIVATE cxx_std_17)
 
-file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/libvtkvmtk*.dylib" "${VMTK_DIR}/libvtkvmtk*.so")
+if(WIN32)
+  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/lib/vtkvmtk*.lib")
+else()
+  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/libvtkvmtk*.dylib" "${VMTK_DIR}/libvtkvmtk*.so")
+endif()
 
-target_link_directories(test_centerline PRIVATE ${VMTK_DIR})
+if(WIN32)
+  target_link_directories(test_centerline PRIVATE "${VMTK_DIR}/lib")
+else()
+  target_link_directories(test_centerline PRIVATE ${VMTK_DIR})
+endif()
 
 target_link_libraries(test_centerline PRIVATE
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
   ${VMTK_INSTALLED_LIBS})
 
-if(PYTHON_LIB)
+if(APPLE AND PYTHON_LIB)
   target_link_options(test_centerline PRIVATE
     "LINKER:-needed_library,${PYTHON_LIB}")
 endif()

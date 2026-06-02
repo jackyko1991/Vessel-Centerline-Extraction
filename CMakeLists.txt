@@ -31,8 +31,14 @@ include(${ITK_USE_FILE})
 # vtkvmtkContrib which is not built. Instead, set include dirs manually and
 # link only the installed libraries.
 set(VMTK_DIR "" CACHE PATH "Path to VMTK install directory")
-find_package(VMTK REQUIRED HINTS ${VMTK_DIR} $ENV{VMTK_DIR})
-# Do NOT include(${VMTK_USE_FILE}) — use explicit target settings below
+if(WIN32)
+  # conda-forge vmtk on Windows ships no VMTKConfig.cmake; set paths manually.
+  set(VMTK_INCLUDE_DIRS "${VMTK_DIR}/include/vmtk")
+  message(STATUS "Windows: VMTK headers at ${VMTK_INCLUDE_DIRS}")
+else()
+  find_package(VMTK REQUIRED HINTS ${VMTK_DIR} $ENV{VMTK_DIR})
+  # Do NOT include(${VMTK_USE_FILE}) — use explicit target settings above
+endif()
 
 # Sources — explicit list, no GLOB
 set(SOURCES
@@ -54,36 +60,42 @@ set_target_properties(CenterlineExtraction PROPERTIES
   INSTALL_RPATH "${VMTK_DIR}")
 
 # Collect installed VMTK libraries (avoids vtkvmtkContrib which isn't built)
-file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/libvtkvmtk*.dylib" "${VMTK_DIR}/libvtkvmtk*.so")
+if(WIN32)
+  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/lib/vtkvmtk*.lib")
+else()
+  file(GLOB VMTK_INSTALLED_LIBS "${VMTK_DIR}/libvtkvmtk*.dylib" "${VMTK_DIR}/libvtkvmtk*.so")
+endif()
 
 target_include_directories(CenterlineExtraction PRIVATE
   include
   ${VMTK_INCLUDE_DIRS}
   ${ITK_INCLUDE_DIRS})
 
-target_link_directories(CenterlineExtraction PRIVATE ${VMTK_DIR})
+if(WIN32)
+  target_link_directories(CenterlineExtraction PRIVATE "${VMTK_DIR}/lib")
+else()
+  target_link_directories(CenterlineExtraction PRIVATE ${VMTK_DIR})
+endif()
 
 target_link_libraries(CenterlineExtraction PRIVATE
   ${VTK_LIBRARIES}
   ${ITK_LIBRARIES}
   ${VMTK_INSTALLED_LIBS})
 
-# VMTK dylibs were built against VTK conda-forge (which includes Python wrapping).
-# Those wrapping libs use flat namespace lookup for libpython symbols at load time.
-# We link libpython explicitly so dyld resolves it — no Python code is executed.
-find_library(PYTHON_LIB
-  NAMES python3.14 python3.13 python3.12 python3.11 python3
-  HINTS "${Python3_ROOT_DIR}/lib" "$ENV{CONDA_PREFIX}/lib"
-  NO_DEFAULT_PATH)
-if(PYTHON_LIB)
-  message(STATUS "Linking libpython for flat-namespace resolution: ${PYTHON_LIB}")
-  # -needed_library marks the dylib as LC_LOAD_DYLIB even when -dead_strip_dylibs
-  # would normally remove it (because we reference no Python symbols directly).
-  # This is required because VMTK's dylibs use flat namespace lookup for libpython.
-  target_link_options(CenterlineExtraction PRIVATE
-    "LINKER:-needed_library,${PYTHON_LIB}")
-else()
-  message(WARNING "libpython not found — runtime may fail if VMTK uses Python wrapping")
+# macOS only: VMTK dylibs use flat-namespace lookup for libpython symbols.
+# Link libpython explicitly so dyld resolves it at load time.
+if(APPLE)
+  find_library(PYTHON_LIB
+    NAMES python3.14 python3.13 python3.12 python3.11 python3
+    HINTS "${Python3_ROOT_DIR}/lib" "$ENV{CONDA_PREFIX}/lib"
+    NO_DEFAULT_PATH)
+  if(PYTHON_LIB)
+    message(STATUS "Linking libpython for flat-namespace resolution: ${PYTHON_LIB}")
+    target_link_options(CenterlineExtraction PRIVATE
+      "LINKER:-needed_library,${PYTHON_LIB}")
+  else()
+    message(WARNING "libpython not found — runtime may fail if VMTK uses Python wrapping")
+  endif()
 endif()
 
 # Required for VTK 9 factory initialisation

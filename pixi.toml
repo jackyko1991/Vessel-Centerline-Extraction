@@ -21,11 +21,15 @@ c-compiler = "*"
 cxx-compiler = "*"
 mesa-libgl-devel-cos7-x86_64 = "*"
 
-# Windows: VMTK has prebuilt conda-forge packages — no source build needed
+# Windows: VMTK has prebuilt conda-forge packages — no source build needed.
+# Pin eigen <5: win-64 vmtk/libitk packages were built against Eigen 3.x;
+# conda-forge Eigen 5.x is a new major version whose cmake config is
+# incompatible with ITK's find_package(Eigen3 3.3) check.
 [target.win-64.dependencies]
 cxx-compiler = "*"
 c-compiler = "*"
 vmtk = "*"
+eigen = "<5"
 
 [tasks]
 # macOS / Linux: build VMTK from source (Windows: pixi install handles it via vmtk package above)

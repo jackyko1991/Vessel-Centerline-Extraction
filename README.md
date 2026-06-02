@@ -32,6 +32,9 @@ After building, run the binary directly (do **not** use `open` on macOS — the 
 
 # Linux
 ./build/app/CenterlineExtraction <surface.stl> <capped_surface.stl> <centerline.vtp>
+
+# Windows — use pixi run so VTK/VMTK DLLs are on PATH
+pixi run build/app/CenterlineExtraction.exe <surface.stl> <capped_surface.stl> <centerline.vtp>
 ```
 
 Example with the bundled test data:
@@ -44,6 +47,10 @@ Example with the bundled test data:
 # Linux
 ./build/app/CenterlineExtraction \
   test_data/left/lumen.stl test_data/left/leftlumen_capped.stl /tmp/out.vtp
+
+# Windows
+pixi run build/app/CenterlineExtraction.exe \
+  test_data/left/lumen.stl test_data/left/leftlumen_capped.stl out.vtp
 ```
 
 Output is in VTK PolyData format (`.vtp`). Open with [ParaView](https://www.paraview.org/).
@@ -65,20 +72,32 @@ Output is in VTK PolyData format (`.vtp`). Open with [ParaView](https://www.para
 Install [pixi](https://pixi.sh):
 
 ```bash
+# macOS / Linux
 curl -fsSL https://pixi.sh/install.sh | bash
+
+# Windows (PowerShell)
+powershell -ExecutionPolicy Bypass -c "irm -useb https://pixi.sh/install.ps1 | iex"
 ```
 
 ### Build
 
 ```bash
+# macOS / Linux
 git clone https://github.com/jackyko1991/Vessel-Centerline-Extraction
 cd Vessel-Centerline-Extraction
 bash scripts/build.sh
 ```
 
+```bat
+:: Windows
+git clone https://github.com/jackyko1991/Vessel-Centerline-Extraction
+cd Vessel-Centerline-Extraction
+scripts\build.bat
+```
+
 The script will:
 1. Install VTK 9, ITK, CMake and Ninja via pixi (conda-forge) — no system installs needed
-2. Build VMTK from source into `build/vmtk-install/` (~20–40 min on first run, skipped if cached)
+2. Build VMTK from source into `build/vmtk-install/` (~20–40 min on first run; skipped if cached — Windows uses a prebuilt conda-forge package instead)
 3. Configure and compile `CenterlineExtraction`
 4. Run unit tests against the bundled test data
 

@@ -4,7 +4,10 @@ setlocal enabledelayedexpansion
 set SCRIPT_DIR=%~dp0
 set ROOT_DIR=%SCRIPT_DIR%..
 set BUILD_DIR=%ROOT_DIR%\build\app
-set VMTK_INSTALL=%ROOT_DIR%\build\vmtk-install
+
+:: On Windows, VMTK comes from the pixi conda-forge package (not a source build).
+:: The cmake config is installed under the pixi env's Library tree.
+set VMTK_INSTALL=%ROOT_DIR%\.pixi\envs\default\Library
 
 cd /d "%ROOT_DIR%"
 
